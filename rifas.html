@@ -1,0 +1,1046 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Rifas — Administrador de números</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F3F4EF;
+    --surface: #FFFFFF;
+    --ink: #1B1D29;
+    --ink-soft: #5B5E6B;
+    --border: #E1E0D6;
+    --accent: #C98A2E;
+    --accent-ink: #4A2E07;
+    --libre-bg: #E4F0E6;
+    --libre-fg: #2F6B45;
+    --libre-solid: #4C9A6A;
+    --porpagar-bg: #FBEAD6;
+    --porpagar-fg: #8A5416;
+    --porpagar-solid: #D98E3E;
+    --pagado-bg: #E7E6FA;
+    --pagado-fg: #4038A8;
+    --pagado-solid: #5B5BD6;
+    --danger: #B3452F;
+    --shadow: 0 1px 2px rgba(27,29,41,0.06), 0 4px 14px rgba(27,29,41,0.05);
+    color-scheme: light;
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #14151B;
+      --surface: #1D1F27;
+      --ink: #F0EFEA;
+      --ink-soft: #A5A7B5;
+      --border: #33353F;
+      --accent: #E3A94C;
+      --accent-ink: #1B1200;
+      --libre-bg: #1D3327;
+      --libre-fg: #7FCB98;
+      --libre-solid: #4C9A6A;
+      --porpagar-bg: #3A2A14;
+      --porpagar-fg: #E8AE6C;
+      --porpagar-solid: #D98E3E;
+      --pagado-bg: #262254;
+      --pagado-fg: #ADA6F5;
+      --pagado-solid: #7A78E8;
+      --danger: #E28468;
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 4px 14px rgba(0,0,0,0.35);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #14151B;
+    --surface: #1D1F27;
+    --ink: #F0EFEA;
+    --ink-soft: #A5A7B5;
+    --border: #33353F;
+    --accent: #E3A94C;
+    --accent-ink: #1B1200;
+    --libre-bg: #1D3327;
+    --libre-fg: #7FCB98;
+    --libre-solid: #4C9A6A;
+    --porpagar-bg: #3A2A14;
+    --porpagar-fg: #E8AE6C;
+    --porpagar-solid: #D98E3E;
+    --pagado-bg: #262254;
+    --pagado-fg: #ADA6F5;
+    --pagado-solid: #7A78E8;
+    --danger: #E28468;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 4px 14px rgba(0,0,0,0.35);
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Space Grotesk", system-ui, -apple-system, "Segoe UI", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, h3, .display {
+    font-family: "Fraunces", Georgia, "Times New Roman", serif;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    margin: 0;
+  }
+  .app {
+    max-width: 520px;
+    margin: 0 auto;
+    min-height: 100%;
+    padding: 18px 16px calc(32px + env(safe-area-inset-bottom, 0px));
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  header.top {
+    position: sticky;
+    top: env(safe-area-inset-top, 0px);
+    z-index: 20;
+    background: var(--bg);
+    padding-top: 4px;
+    padding-bottom: 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .brand {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .brand h1 { font-size: 1.5rem; }
+  .brand span { font-size: 0.85rem; color: var(--ink-soft); }
+  select.rifa-picker {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--ink);
+    font-family: inherit;
+    font-size: 0.95rem;
+  }
+  .row { display: flex; gap: 8px; }
+  button {
+    font-family: inherit;
+    cursor: pointer;
+    border: none;
+  }
+  .btn {
+    padding: 10px 14px;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--ink);
+  }
+  .btn:active { transform: scale(0.98); }
+  .btn.primary {
+    background: var(--accent);
+    color: var(--accent-ink);
+    border-color: transparent;
+  }
+  .btn.ghost {
+    background: transparent;
+    border-color: transparent;
+    color: var(--ink-soft);
+  }
+  .btn.danger { color: var(--danger); }
+  .btn.block { width: 100%; }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px 16px;
+    box-shadow: var(--shadow);
+  }
+  .raffle-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .raffle-meta h2 { font-size: 1.15rem; }
+  .raffle-meta .meta-sub { color: var(--ink-soft); font-size: 0.82rem; margin-top: 2px; }
+
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+  }
+  .stat {
+    border-radius: 12px;
+    padding: 10px 8px;
+    text-align: center;
+    background: var(--surface);
+    border: 1px solid var(--border);
+  }
+  .stat .num { font-family: "Fraunces", serif; font-size: 1.3rem; font-weight: 600; display: block; }
+  .stat .lbl { font-size: 0.68rem; color: var(--ink-soft); text-transform: none; }
+  .stat.libre .num { color: var(--libre-fg); }
+  .stat.porpagar .num { color: var(--porpagar-fg); }
+  .stat.pagado .num { color: var(--pagado-fg); }
+
+  .toolbar {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .toolbar input[type="search"] {
+    flex: 1;
+    padding: 9px 12px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--ink);
+    font-family: inherit;
+    font-size: 0.9rem;
+  }
+  .legend {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    font-size: 0.78rem;
+    color: var(--ink-soft);
+    padding: 0 2px;
+  }
+  .legend .dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; margin-right: 5px; vertical-align: middle; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(52px, 1fr));
+    gap: 8px;
+  }
+  .num-btn {
+    aspect-ratio: 1;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--ink);
+    font-weight: 600;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+  .num-btn.libre { background: var(--libre-bg); color: var(--libre-fg); border-color: transparent; }
+  .num-btn.porpagar { background: var(--porpagar-bg); color: var(--porpagar-fg); border-color: transparent; }
+  .num-btn.pagado { background: var(--pagado-bg); color: var(--pagado-fg); border-color: transparent; }
+  .num-btn.dim { opacity: 0.28; }
+  .num-btn:active { transform: scale(0.94); }
+
+  .empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--ink-soft);
+  }
+  .empty .display { font-size: 1.3rem; color: var(--ink); margin-bottom: 6px; }
+
+  .sheet-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(20,21,27,0.45);
+    display: none;
+    align-items: flex-end;
+    justify-content: center;
+    z-index: 100;
+    padding: 0;
+  }
+  .sheet-overlay.open { display: flex; }
+  .sheet {
+    background: var(--surface);
+    width: 100%;
+    max-width: 520px;
+    border-radius: 18px 18px 0 0;
+    padding: 18px 18px calc(18px + env(safe-area-inset-bottom, 0px));
+    max-height: 88vh;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .sheet-overlay.center { align-items: center; padding: 20px; }
+  .sheet-overlay.center .sheet { border-radius: 18px; max-height: 85vh; }
+
+  .sheet h3 { font-size: 1.2rem; }
+  .field { display: flex; flex-direction: column; gap: 4px; }
+  .field label { font-size: 0.78rem; color: var(--ink-soft); font-weight: 500; }
+  .field input, .field select, .field textarea {
+    padding: 10px 11px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--ink);
+    font-family: inherit;
+    font-size: 0.95rem;
+  }
+  .field textarea { resize: vertical; min-height: 56px; }
+
+  .status-choices {
+    display: flex;
+    gap: 8px;
+  }
+  .status-choice {
+    flex: 1;
+    padding: 10px 6px;
+    border-radius: 10px;
+    border: 1.5px solid var(--border);
+    background: var(--surface);
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--ink-soft);
+    text-align: center;
+  }
+  .status-choice.active.libre { border-color: var(--libre-solid); background: var(--libre-bg); color: var(--libre-fg); }
+  .status-choice.active.porpagar { border-color: var(--porpagar-solid); background: var(--porpagar-bg); color: var(--porpagar-fg); }
+  .status-choice.active.pagado { border-color: var(--pagado-solid); background: var(--pagado-bg); color: var(--pagado-fg); }
+
+  .sheet-actions { display: flex; gap: 8px; margin-top: 4px; }
+  .sheet-actions .btn { flex: 1; }
+
+  .toast {
+    position: fixed;
+    bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--ink);
+    color: var(--bg);
+    padding: 10px 16px;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    opacity: 0;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    z-index: 200;
+    pointer-events: none;
+    max-width: 90vw;
+    text-align: center;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  .icon-btn {
+    background: transparent;
+    border: none;
+    color: var(--ink-soft);
+    font-size: 1.1rem;
+    padding: 4px 6px;
+    line-height: 1;
+  }
+
+  .jumpbar {
+    display: flex;
+    gap: 8px;
+  }
+  .jumpbar input {
+    width: 90px;
+    padding: 9px 10px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--ink);
+    font-family: inherit;
+    font-size: 0.9rem;
+  }
+
+  #printArea { display: none; }
+  @media print {
+    body * { visibility: hidden; }
+    .app, .sheet-overlay, .toast { display: none !important; }
+    #printArea, #printArea * { visibility: visible; }
+    #printArea {
+      display: block !important;
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      color: #111;
+      background: #fff;
+      padding: 20px;
+    }
+    #printArea table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    #printArea th, #printArea td { border: 1px solid #999; padding: 5px 7px; text-align: left; }
+    #printArea h2 { font-family: Georgia, serif; margin-bottom: 2px; }
+    #printArea .print-sub { color: #444; margin-bottom: 14px; font-size: 13px; }
+  }
+</style>
+</head>
+<body>
+<div class="app" id="app"></div>
+
+<div class="sheet-overlay" id="numberSheetOverlay">
+  <div class="sheet" id="numberSheet"></div>
+</div>
+
+<div class="sheet-overlay center" id="raffleSheetOverlay">
+  <div class="sheet" id="raffleSheet"></div>
+</div>
+
+<input type="file" id="importFileInput" accept="application/json" style="display:none;">
+
+<div id="printArea"></div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function () {
+  "use strict";
+
+  var STORAGE_KEY = "rifas_admin_data_v1";
+
+  function loadData() {
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return { rifas: {}, activeId: null };
+      var parsed = JSON.parse(raw);
+      if (!parsed.rifas) parsed.rifas = {};
+      return parsed;
+    } catch (e) {
+      console.error("No se pudo leer el almacenamiento local:", e);
+      return { rifas: {}, activeId: null };
+    }
+  }
+
+  function saveData() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    } catch (e) {
+      console.error("No se pudo guardar en el almacenamiento local:", e);
+      showToast("No se pudo guardar. Espacio local lleno o no disponible.");
+    }
+  }
+
+  var state = loadData();
+
+  function uid() {
+    return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+  }
+
+  function fmtMoney(n) {
+    if (n === null || n === undefined || isNaN(n)) return "—";
+    var fixed = Number(n).toFixed(2);
+    var parts = fixed.split(".");
+    var intPart = parts[0];
+    var negative = intPart.charAt(0) === "-";
+    if (negative) intPart = intPart.slice(1);
+    var withThousands = "";
+    for (var i = 0; i < intPart.length; i++) {
+      var posFromEnd = intPart.length - i;
+      withThousands += intPart.charAt(i);
+      if (posFromEnd > 1 && posFromEnd % 3 === 1) withThousands += ",";
+    }
+    return (negative ? "-$" : "$") + withThousands + "." + parts[1];
+  }
+
+  function fmtDate(iso) {
+    if (!iso) return "Sin fecha";
+    var parts = iso.split("-");
+    if (parts.length !== 3) return iso;
+    var meses = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
+    return parseInt(parts[2], 10) + " " + meses[parseInt(parts[1], 10) - 1] + " " + parts[0];
+  }
+
+  function getActiveRifa() {
+    if (!state.activeId) return null;
+    return state.rifas[state.activeId] || null;
+  }
+
+  var THEME_KEY = "rifas_admin_theme_v1";
+
+  function getTheme() {
+    try { return localStorage.getItem(THEME_KEY) || "auto"; } catch (e) { return "auto"; }
+  }
+
+  function applyTheme() {
+    var t = getTheme();
+    if (t === "auto") {
+      document.documentElement.removeAttribute("data-theme");
+    } else {
+      document.documentElement.setAttribute("data-theme", t);
+    }
+  }
+
+  function isDarkEffective() {
+    var t = getTheme();
+    if (t === "dark") return true;
+    if (t === "light") return false;
+    return !!(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+  }
+
+  function toggleTheme() {
+    var current = getTheme();
+    var prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+    var effectiveDark = current === "dark" || (current === "auto" && prefersDark);
+    var next = effectiveDark ? "light" : "dark";
+    try { localStorage.setItem(THEME_KEY, next); } catch (e) {}
+    applyTheme();
+    render();
+  }
+
+  applyTheme();
+
+  var toastTimer = null;
+  function showToast(msg) {
+    var t = document.getElementById("toast");
+    t.textContent = msg;
+    t.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { t.classList.remove("show"); }, 2200);
+  }
+
+  // ---------- Render ----------
+
+  var searchTerm = "";
+  var filterEstado = "todos";
+
+  function render() {
+    try {
+      renderInner();
+    } catch (err) {
+      console.error("Error al mostrar la app:", err);
+      var app = document.getElementById("app");
+      if (app) {
+        app.innerHTML = '<div class="empty card">' +
+          '<div class="display">Algo no cargó bien</div>' +
+          '<p>Intenta cerrar y volver a abrir la app. Si el problema sigue, tus datos guardados no se pierden.</p>' +
+          '<button class="btn primary" onclick="location.reload()">Reintentar</button>' +
+          '</div>';
+      }
+    }
+  }
+
+  function renderInner() {
+    var app = document.getElementById("app");
+    var rifa = getActiveRifa();
+    var rifaIds = Object.keys(state.rifas);
+
+    var html = "";
+    html += renderHeader(rifaIds, rifa);
+
+    if (!rifa) {
+      html += '<div class="empty card">' +
+        '<div class="display">Todavía no hay ninguna rifa</div>' +
+        '<p>Crea tu primera rifa para empezar a administrar los números.</p>' +
+        '<button class="btn primary" onclick="RifasApp.openRaffleSheet()">Crear rifa</button>' +
+        '</div>';
+      app.innerHTML = html;
+      return;
+    }
+
+    var nums = rifa.numeros;
+    var total = rifa.cantidad;
+    var libres = 0, pagados = 0, porpagar = 0, recaudado = 0;
+    for (var i = 0; i < total; i++) {
+      var n = nums[i];
+      if (!n || n.estado === "libre") libres++;
+      else if (n.estado === "pagado") { pagados++; recaudado += (rifa.precio || 0); }
+      else if (n.estado === "porpagar") porpagar++;
+    }
+
+    html += renderRaffleCard(rifa, libres, porpagar, pagados, recaudado);
+    html += renderToolbarAndLegend();
+    html += renderGrid(rifa, nums, total);
+
+    app.innerHTML = html;
+
+    var searchInput = document.getElementById("searchInput");
+    if (searchInput) {
+      searchInput.value = searchTerm;
+      searchInput.addEventListener("input", function (e) {
+        searchTerm = e.target.value.trim().toLowerCase();
+        renderGridOnly();
+      });
+    }
+    var jumpInput = document.getElementById("jumpInput");
+    if (jumpInput) {
+      jumpInput.addEventListener("keydown", function (e) {
+        if (e.key === "Enter") jumpToNumber();
+      });
+    }
+  }
+
+  function renderHeader(rifaIds, rifa) {
+    var options = "";
+    rifaIds.forEach(function (id) {
+      var r = state.rifas[id];
+      options += '<option value="' + id + '"' + (id === state.activeId ? " selected" : "") + '>' + escapeHtml(r.nombre) + '</option>';
+    });
+
+    var html = '<header class="top">';
+    html += '<div class="brand"><h1>🎟️ Rifas</h1>';
+    html += '<button class="icon-btn" onclick="RifasApp.toggleTheme()" title="Cambiar tema" id="themeBtn">' + (isDarkEffective() ? "☀️" : "🌙") + '</button>';
+    html += '</div>';
+    html += '<span class="meta-sub" style="color:var(--ink-soft);font-size:0.8rem;">Guardado en este dispositivo</span>';
+    if (rifaIds.length > 0) {
+      html += '<select class="rifa-picker" onchange="RifasApp.switchRaffle(this.value)">' + options + '</select>';
+    }
+    html += '<div class="row">';
+    html += '<button class="btn primary block" onclick="RifasApp.openRaffleSheet()">+ Nueva rifa</button>';
+    if (rifa) {
+      html += '<button class="btn ghost" onclick="RifasApp.openRaffleSheet(\'' + rifa.id + '\')" title="Editar rifa">✎</button>';
+      html += '<button class="btn ghost" onclick="RifasApp.duplicateRaffle(\'' + rifa.id + '\')" title="Duplicar rifa">⧉</button>';
+      html += '<button class="btn ghost" onclick="RifasApp.printList()" title="Imprimir / Guardar PDF">🖨</button>';
+    }
+    html += '</div>';
+    html += '</header>';
+    return html;
+  }
+
+  function renderRaffleCard(rifa, libres, porpagar, pagados, recaudado) {
+    var html = '<div class="card">';
+    html += '<div class="raffle-meta">';
+    html += '<div><h2>' + escapeHtml(rifa.nombre) + '</h2>';
+    html += '<div class="meta-sub">Sorteo: ' + fmtDate(rifa.fecha) + ' · ' + rifa.cantidad + ' números' + (rifa.precio ? ' · ' + fmtMoney(rifa.precio) + ' c/u' : '') + '</div></div>';
+    html += '<div class="row" style="gap:2px;">';
+    html += '<button class="icon-btn" onclick="RifasApp.exportBackup()" title="Descargar respaldo">📤</button>';
+    html += '<button class="icon-btn" onclick="document.getElementById(\'importFileInput\').click()" title="Restaurar respaldo">📥</button>';
+    html += '<button class="icon-btn" onclick="RifasApp.confirmDeleteRaffle(\'' + rifa.id + '\')" title="Eliminar rifa">🗑</button>';
+    html += '</div>';
+    html += '</div>';
+    html += '<div class="stats" style="margin-top:12px;">';
+    html += '<div class="stat libre"><span class="num">' + libres + '</span><span class="lbl">Libres</span></div>';
+    html += '<div class="stat porpagar"><span class="num">' + porpagar + '</span><span class="lbl">Por pagar</span></div>';
+    html += '<div class="stat pagado"><span class="num">' + pagados + '</span><span class="lbl">Pagados</span></div>';
+    html += '<div class="stat"><span class="num">' + fmtMoney(recaudado) + '</span><span class="lbl">Recaudado</span></div>';
+    html += '</div>';
+    if (rifa.precio) {
+      html += '<div class="meta-sub" style="margin-top:8px;">Potencial si se vende todo: ' + fmtMoney(rifa.precio * rifa.cantidad) + '</div>';
+    }
+    html += '</div>';
+    return html;
+  }
+
+  function renderToolbarAndLegend() {
+    var html = '<div class="toolbar">';
+    html += '<input type="search" id="searchInput" placeholder="Buscar por comprador...">';
+    html += '<div class="jumpbar"><input type="number" id="jumpInput" placeholder="N°" min="1"><button class="btn" onclick="RifasApp.jumpToNumber()">Ir</button></div>';
+    html += '</div>';
+    html += '<div class="row" id="filterChips" style="gap:6px; flex-wrap:wrap;">';
+    [["todos", "Todos"], ["libre", "Libres"], ["porpagar", "Por pagar"], ["pagado", "Pagados"]].forEach(function (f) {
+      var active = f[0] === filterEstado;
+      html += '<button class="btn' + (active ? ' primary' : ' ghost') + '" style="padding:6px 12px;font-size:0.78rem;" onclick="RifasApp.setFilter(\'' + f[0] + '\')">' + f[1] + '</button>';
+    });
+    html += '</div>';
+    html += '<div class="legend">';
+    html += '<span><span class="dot" style="background:var(--libre-solid)"></span>Libre</span>';
+    html += '<span><span class="dot" style="background:var(--porpagar-solid)"></span>Reservado, por pagar</span>';
+    html += '<span><span class="dot" style="background:var(--pagado-solid)"></span>Reservado, pagado</span>';
+    html += '</div>';
+    return html;
+  }
+
+  function numberMatches(n) {
+    var estado = n ? n.estado : "libre";
+    if (filterEstado !== "todos" && estado !== filterEstado) return false;
+    if (searchTerm) {
+      if (!n) return false;
+      var hay = ((n.comprador || "") + " " + (n.contacto || "")).toLowerCase();
+      if (hay.indexOf(searchTerm) === -1) return false;
+    }
+    return true;
+  }
+
+  function renderGrid(rifa, nums, total) {
+    var html = '<div class="grid" id="numGrid">';
+    for (var i = 0; i < total; i++) {
+      var n = nums[i];
+      var estado = n ? n.estado : "libre";
+      var dim = !numberMatches(n) ? " dim" : "";
+      var label = String(i + 1).padStart(String(total).length, "0");
+      html += '<button class="num-btn ' + estado + dim + '" onclick="RifasApp.openNumberSheet(' + i + ')">' + label + '</button>';
+    }
+    html += '</div>';
+    return html;
+  }
+
+  function renderGridOnly() {
+    var rifa = getActiveRifa();
+    if (!rifa) return;
+    var grid = document.getElementById("numGrid");
+    if (!grid) return;
+    grid.outerHTML = renderGrid(rifa, rifa.numeros, rifa.cantidad);
+  }
+
+  function escapeHtml(s) {
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+
+  // ---------- Raffle create/edit sheet ----------
+
+  function openRaffleSheet(editId) {
+    var overlay = document.getElementById("raffleSheetOverlay");
+    var sheet = document.getElementById("raffleSheet");
+    var editing = editId ? state.rifas[editId] : null;
+
+    var html = '<h3>' + (editing ? "Editar rifa" : "Nueva rifa") + '</h3>';
+    html += '<div class="field"><label>Nombre de la rifa</label><input id="rf_nombre" type="text" placeholder="Ej. Rifa navideña 2026" value="' + (editing ? escapeHtml(editing.nombre) : "") + '"></div>';
+    html += '<div class="field"><label>Cantidad de números</label><input id="rf_cantidad" type="number" min="1" max="10000" placeholder="Ej. 100" value="' + (editing ? editing.cantidad : "") + '"' + (editing ? " disabled" : "") + '></div>';
+    if (editing) html += '<div class="meta-sub" style="color:var(--ink-soft);font-size:0.78rem;">La cantidad de números no se puede modificar luego de creada la rifa.</div>';
+    html += '<div class="field"><label>Fecha del sorteo</label><input id="rf_fecha" type="date" value="' + (editing ? editing.fecha || "" : "") + '"></div>';
+    html += '<div class="field"><label>Precio por número (opcional)</label><input id="rf_precio" type="number" min="0" step="0.01" placeholder="Ej. 5.00" value="' + (editing && editing.precio ? editing.precio : "") + '"></div>';
+    html += '<div class="sheet-actions">';
+    html += '<button class="btn ghost" onclick="RifasApp.closeRaffleSheet()">Cancelar</button>';
+    html += '<button class="btn primary" onclick="RifasApp.saveRaffle(' + (editing ? "'" + editId + "'" : "null") + ')">Guardar</button>';
+    html += '</div>';
+
+    sheet.innerHTML = html;
+    overlay.classList.add("open");
+  }
+
+  function closeRaffleSheet() {
+    document.getElementById("raffleSheetOverlay").classList.remove("open");
+  }
+
+  function saveRaffle(editId) {
+    var nombre = document.getElementById("rf_nombre").value.trim();
+    var fecha = document.getElementById("rf_fecha").value;
+    var precioRaw = document.getElementById("rf_precio").value;
+    var precio = precioRaw ? parseFloat(precioRaw) : 0;
+
+    if (!nombre) { showToast("Ponle un nombre a la rifa."); return; }
+
+    if (editId) {
+      var r = state.rifas[editId];
+      r.nombre = nombre;
+      r.fecha = fecha;
+      r.precio = precio;
+    } else {
+      var cantidadRaw = document.getElementById("rf_cantidad").value;
+      var cantidad = parseInt(cantidadRaw, 10);
+      if (!cantidad || cantidad < 1) { showToast("Ingresa una cantidad de números válida."); return; }
+      if (cantidad > 5000) { showToast("Máximo 5000 números por rifa."); return; }
+      var id = uid();
+      state.rifas[id] = {
+        id: id,
+        nombre: nombre,
+        cantidad: cantidad,
+        fecha: fecha,
+        precio: precio,
+        numeros: {}
+      };
+      state.activeId = id;
+    }
+    saveData();
+    closeRaffleSheet();
+    render();
+    showToast("Rifa guardada.");
+  }
+
+  function confirmDeleteRaffle(id) {
+    var r = state.rifas[id];
+    if (!r) return;
+    if (!confirm('¿Eliminar la rifa "' + r.nombre + '" junto con todos sus números y compradores? Esta acción no se puede deshacer.')) return;
+    delete state.rifas[id];
+    var remaining = Object.keys(state.rifas);
+    state.activeId = remaining.length ? remaining[0] : null;
+    saveData();
+    render();
+    showToast("Rifa eliminada.");
+  }
+
+  function jumpToNumber() {
+    var rifa = getActiveRifa();
+    if (!rifa) return;
+    var input = document.getElementById("jumpInput");
+    var value = parseInt(input.value, 10);
+    if (!value || value < 1 || value > rifa.cantidad) {
+      showToast("Ingresa un número entre 1 y " + rifa.cantidad + ".");
+      return;
+    }
+    openNumberSheet(value - 1);
+  }
+
+  function setFilter(value) {
+    filterEstado = value;
+    render();
+  }
+
+  function duplicateRaffle(id) {
+    var r = state.rifas[id];
+    if (!r) return;
+    var newId = uid();
+    state.rifas[newId] = {
+      id: newId,
+      nombre: r.nombre + " (copia)",
+      cantidad: r.cantidad,
+      fecha: r.fecha,
+      precio: r.precio,
+      numeros: {}
+    };
+    state.activeId = newId;
+    saveData();
+    render();
+    showToast("Rifa duplicada, lista para vender de nuevo.");
+  }
+
+  function switchRaffle(id) {
+    state.activeId = id;
+    searchTerm = "";
+    saveData();
+    render();
+  }
+
+  // ---------- Number sheet ----------
+
+  var currentNumberIndex = null;
+
+  function openNumberSheet(index) {
+    var rifa = getActiveRifa();
+    if (!rifa) return;
+    currentNumberIndex = index;
+    var n = rifa.numeros[index] || { estado: "libre", comprador: "", contacto: "", formaPago: "", notas: "" };
+    var label = String(index + 1).padStart(String(rifa.cantidad).length, "0");
+
+    var overlay = document.getElementById("numberSheetOverlay");
+    var sheet = document.getElementById("numberSheet");
+
+    var html = '<h3>Número ' + label + '</h3>';
+    html += '<div class="status-choices">';
+    html += statusChoiceBtn("libre", "Libre", n.estado);
+    html += statusChoiceBtn("porpagar", "Por pagar", n.estado);
+    html += statusChoiceBtn("pagado", "Pagado", n.estado);
+    html += '</div>';
+    html += '<div class="field"><label>Nombre del comprador</label><input id="nb_comprador" type="text" placeholder="Nombre completo" value="' + escapeHtml(n.comprador) + '"></div>';
+    html += '<div class="field"><label>Teléfono o contacto</label><input id="nb_contacto" type="text" placeholder="09xxxxxxxx" value="' + escapeHtml(n.contacto) + '"></div>';
+    html += '<div class="field"><label>Forma de pago</label><select id="nb_formapago">';
+    ["", "Efectivo", "Transferencia", "Otro"].forEach(function (opt) {
+      var label2 = opt || "Sin especificar";
+      html += '<option value="' + opt + '"' + (n.formaPago === opt ? " selected" : "") + '>' + label2 + '</option>';
+    });
+    html += '</select></div>';
+    html += '<div class="field"><label>Notas (opcional)</label><textarea id="nb_notas" placeholder="Referencia de pago, comentarios...">' + escapeHtml(n.notas) + '</textarea></div>';
+    if (n.estado !== "libre") {
+      html += '<button class="btn block" onclick="RifasApp.shareNumber(' + index + ')">📲 Compartir comprobante</button>';
+    }
+    html += '<div class="sheet-actions">';
+    html += '<button class="btn ghost" onclick="RifasApp.closeNumberSheet()">Cancelar</button>';
+    html += '<button class="btn primary" onclick="RifasApp.saveNumber()">Guardar</button>';
+    html += '</div>';
+
+    sheet.innerHTML = html;
+    sheet.dataset.estado = n.estado;
+    overlay.classList.add("open");
+  }
+
+  function statusChoiceBtn(value, label, current) {
+    var active = value === current ? " active " + value : "";
+    return '<div class="status-choice' + active + '" data-value="' + value + '" onclick="RifasApp.pickStatus(\'' + value + '\')">' + label + '</div>';
+  }
+
+  function pickStatus(value) {
+    var sheet = document.getElementById("numberSheet");
+    sheet.dataset.estado = value;
+    var choices = sheet.querySelectorAll(".status-choice");
+    choices.forEach(function (el) {
+      el.className = "status-choice" + (el.dataset.value === value ? " active " + value : "");
+    });
+  }
+
+  function closeNumberSheet() {
+    document.getElementById("numberSheetOverlay").classList.remove("open");
+    currentNumberIndex = null;
+  }
+
+  function saveNumber() {
+    var rifa = getActiveRifa();
+    if (!rifa || currentNumberIndex === null) return;
+    var sheet = document.getElementById("numberSheet");
+    var estado = sheet.dataset.estado || "libre";
+    var comprador = document.getElementById("nb_comprador").value.trim();
+    var contacto = document.getElementById("nb_contacto").value.trim();
+    var formaPago = document.getElementById("nb_formapago").value;
+    var notas = document.getElementById("nb_notas").value.trim();
+
+    if (estado !== "libre" && !comprador) {
+      showToast("Ingresa el nombre del comprador para reservar el número.");
+      return;
+    }
+
+    if (estado === "libre") {
+      delete rifa.numeros[currentNumberIndex];
+    } else {
+      rifa.numeros[currentNumberIndex] = {
+        estado: estado,
+        comprador: comprador,
+        contacto: contacto,
+        formaPago: formaPago,
+        notas: notas
+      };
+    }
+    saveData();
+    closeNumberSheet();
+    render();
+  }
+
+  // ---------- Share ----------
+
+  function shareNumber(index) {
+    var rifa = getActiveRifa();
+    if (!rifa) return;
+    var n = rifa.numeros[index];
+    if (!n) return;
+    var label = String(index + 1).padStart(String(rifa.cantidad).length, "0");
+    var estadoTxt = n.estado === "pagado" ? "Pagado ✅" : "Reservado, pendiente de pago ⏳";
+    var lineas = [
+      "🎟️ " + rifa.nombre,
+      "Número: " + label,
+      "Comprador: " + n.comprador,
+      "Estado: " + estadoTxt
+    ];
+    if (rifa.precio) lineas.push("Valor: " + fmtMoney(rifa.precio));
+    if (rifa.fecha) lineas.push("Sorteo: " + fmtDate(rifa.fecha));
+    if (n.notas) lineas.push("Notas: " + n.notas);
+    var texto = lineas.join("\n");
+
+    if (navigator.share) {
+      navigator.share({ text: texto }).catch(function () {});
+      return;
+    }
+    var digits = (n.contacto || "").replace(/\D/g, "");
+    var url = "https://wa.me/" + digits + "?text=" + encodeURIComponent(texto);
+    window.open(url, "_blank");
+  }
+
+  function printList() {
+    var rifa = getActiveRifa();
+    if (!rifa) return;
+    var filas = [];
+    for (var i = 0; i < rifa.cantidad; i++) {
+      var n = rifa.numeros[i];
+      if (n) filas.push({ num: i + 1, n: n });
+    }
+    filas.sort(function (a, b) { return a.num - b.num; });
+
+    var vendidos = filas.length;
+    var pagados = filas.filter(function (f) { return f.n.estado === "pagado"; }).length;
+    var recaudado = pagados * (rifa.precio || 0);
+
+    var html = "<h2>" + escapeHtml(rifa.nombre) + "</h2>";
+    html += '<div class="print-sub">Sorteo: ' + fmtDate(rifa.fecha) + " · " + rifa.cantidad + " números totales" + (rifa.precio ? " · " + fmtMoney(rifa.precio) + " c/u" : "") + "<br>";
+    html += vendidos + " números reservados (" + pagados + " pagados) · Recaudado: " + fmtMoney(recaudado) + "</div>";
+
+    if (filas.length === 0) {
+      html += "<p>Todavía no hay números reservados.</p>";
+    } else {
+      html += "<table><thead><tr><th>N°</th><th>Comprador</th><th>Contacto</th><th>Estado</th><th>Forma de pago</th></tr></thead><tbody>";
+      filas.forEach(function (f) {
+        var label = String(f.num).padStart(String(rifa.cantidad).length, "0");
+        var estadoTxt = f.n.estado === "pagado" ? "Pagado" : "Por pagar";
+        html += "<tr><td>" + label + "</td><td>" + escapeHtml(f.n.comprador) + "</td><td>" + escapeHtml(f.n.contacto) + "</td><td>" + estadoTxt + "</td><td>" + escapeHtml(f.n.formaPago) + "</td></tr>";
+      });
+      html += "</tbody></table>";
+    }
+
+    document.getElementById("printArea").innerHTML = html;
+    window.print();
+  }
+
+  // ---------- Backup / restore ----------
+
+  function importBackup(file) {
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function (e) {
+      try {
+        var parsed = JSON.parse(e.target.result);
+        if (!parsed || typeof parsed !== "object" || !parsed.rifas) {
+          showToast("El archivo no tiene el formato esperado.");
+          return;
+        }
+        if (!confirm("Esto reemplazará todas las rifas guardadas en este dispositivo por las del respaldo. ¿Continuar?")) return;
+        state = { rifas: parsed.rifas, activeId: parsed.activeId || Object.keys(parsed.rifas)[0] || null };
+        saveData();
+        searchTerm = "";
+        filterEstado = "todos";
+        render();
+        showToast("Respaldo restaurado.");
+      } catch (err) {
+        console.error(err);
+        showToast("No se pudo leer el archivo de respaldo.");
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  function exportBackup() {
+    try {
+      var blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement("a");
+      a.href = url;
+      a.download = "rifas_backup_" + new Date().toISOString().slice(0, 10) + ".json";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      console.error(e);
+      showToast("No se pudo generar el respaldo.");
+    }
+  }
+
+  // Close sheets by tapping the dark overlay background
+  document.addEventListener("click", function (e) {
+    if (e.target.id === "numberSheetOverlay") closeNumberSheet();
+    if (e.target.id === "raffleSheetOverlay") closeRaffleSheet();
+  });
+
+  var importInputEl = document.getElementById("importFileInput");
+  if (importInputEl) {
+    importInputEl.addEventListener("change", function (e) {
+      var file = e.target.files && e.target.files[0];
+      importBackup(file);
+      e.target.value = "";
+    });
+  }
+
+  window.RifasApp = {
+    openRaffleSheet: openRaffleSheet,
+    closeRaffleSheet: closeRaffleSheet,
+    saveRaffle: saveRaffle,
+    confirmDeleteRaffle: confirmDeleteRaffle,
+    duplicateRaffle: duplicateRaffle,
+    switchRaffle: switchRaffle,
+    setFilter: setFilter,
+    jumpToNumber: jumpToNumber,
+    toggleTheme: toggleTheme,
+    printList: printList,
+    openNumberSheet: openNumberSheet,
+    closeNumberSheet: closeNumberSheet,
+    pickStatus: pickStatus,
+    saveNumber: saveNumber,
+    shareNumber: shareNumber,
+    exportBackup: exportBackup
+  };
+
+  render();
+})();
+</script>
+<script>
+  // Último salvavidas: si algo en el script principal falla antes de terminar,
+  // muestra un mensaje en vez de dejar la pantalla en blanco.
+  (function () {
+    setTimeout(function () {
+      var app = document.getElementById("app");
+      if (app && app.innerHTML.trim() === "") {
+        app.innerHTML = '<div style="max-width:480px;margin:60px auto;padding:20px;font-family:sans-serif;text-align:center;color:#333;">' +
+          '<h2 style="font-family:Georgia,serif;">No se pudo cargar la app</h2>' +
+          '<p>Prueba recargando la página. Si sigue igual, intenta abrirla en otro navegador (Chrome o Safari actualizados).</p>' +
+          '<button onclick="location.reload()" style="padding:10px 18px;border-radius:8px;border:none;background:#C98A2E;color:#fff;font-weight:600;">Reintentar</button>' +
+          '</div>';
+      }
+    }, 1500);
+  })();
+</script>
+</body>
+</html>
